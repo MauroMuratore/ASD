@@ -123,14 +123,14 @@ def create_grid(nrow: int, ncol: int, density: float, agglomerate: int, strategy
     g = (np.zeros((nrow, ncol))).astype(int)
     n_obstacles = round(nrow * ncol * (1 - density))
     n_agglomerates = n_obstacles // agglomerate
-
+    
     if strategy == STRATEGY["RANGE"] :
         dict_row = { i : [(0, ncol-1)] for i in range(0, nrow)}
         dict_col = { j : [(0, nrow-1)] for j in range(0, ncol)}
         for _ in range(0, n_agglomerates):
             create_range_agglomerate(g, agglomerate, dict_row, dict_col)
         return g
-    for _ in range(0, n_agglomerates):
+    while np.sum(g) / g.size < 1 - density :
         create_random_agglomerate(g, agglomerate)
         return g
 
@@ -143,20 +143,27 @@ def main():
     if not os.path.isdir("./data/grids"):
         os.mkdir("./data/grids")
     print("--------- START MAIN ---------")
-    data_time = np.array([["file", "time", "nrow", "density", "agglomerate"]])
+    data_time = np.array([["file", "time", "strategy", "nrow", "density", "agglomerate"]])
     for d in range(60, 100, 5):
         density = d/100
         for agglomerate in range(1, 11):
             for nrow in range(10,51,2):
-                for i in range(0,4):
-                    filename = "./data/grids/{}x{}_d{}_ag{}_{}.csv".format(nrow, nrow, density, agglomerate, i)
+                for i in range(0,3):
+                    filename = "./data/grids/ran_{}x{}_d{}_ag{}_{}.csv".format(nrow, nrow, density, agglomerate, i)
                     start = time.process_time()
                     g = create_grid(nrow, nrow, density, agglomerate, STRATEGY["RANGE"])
                     end = time.process_time()
-                    record_time =np.array([[str(filename), str(end-start), str(nrow), str(density), str(agglomerate)]])
+                    record_time =np.array([[str(filename), str(end-start), "RANGE",str(nrow), str(density), str(agglomerate)]])
                     data_time= np.vstack([data_time, record_time])
                     np.savetxt(filename, g, fmt="%2.0f" ,delimiter=";")
-                    print(filename+ " written")
+                    filename_rng = "./data/grids/ran_{}x{}_d{}_ag{}_{}.csv".format(nrow, nrow, density, agglomerate, i)
+                    start_rng = time.process_time()
+                    g_rng = create_grid(nrow, nrow, density, agglomerate, STRATEGY["RANDOM"])
+                    end_rng = time.process_time()
+                    record_time_rng =np.array([[str(filename_rng), str(end_rng-start_rng), "RANDOM",str(nrow), str(density), str(agglomerate)]])
+                    data_time= np.vstack([data_time, record_time_rng])
+                    np.savetxt(filename_rng, g_rng, fmt="%2.0f" ,delimiter=";")
+                    print(filename_rng+ " written")
     
     np.savetxt("./data/grids/time.csv", data_time, fmt="%s" , delimiter=";")
 
