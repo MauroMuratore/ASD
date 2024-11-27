@@ -1,2 +1,6 @@
 asd_env/
+data/adj_list/*
+data/problem/*
+data/result/*
+data/result.csv
 __pycache__
