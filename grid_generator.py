@@ -1,7 +1,7 @@
 import math
 import random
 
-class GridGenerator():
+class GridGenerator:
 
     def __init__(self, n_rows: int, n_cols: int, obstacles_ratio: float, agglomerate_size: int):
         # Create nodes and empty adjacency list
@@ -67,22 +67,18 @@ class GridGenerator():
             
             current_node = random.choice(available_nodes)
             available_nodes.remove(current_node)
-            print("start " + str(current_node))
             agglomerate = [current_node]
 
             for _i in range(0, self.agglomerate_size-1) :
                 available_neighbours = self.get_available_neighbours(current_node, available_nodes) 
                 if len(available_neighbours) == 0:
-                    print("no neigh")
                     break
                 current_node = random.choice(available_neighbours)
-                print("next " + str(current_node))
                 available_nodes.remove(current_node)
                 agglomerate.append( current_node)
             
             for node in agglomerate :
                 available_neighbours = self.get_available_neighbours(node, available_nodes)
-                print(available_neighbours)
                 for neighbour in available_neighbours :
                     available_nodes.remove(neighbour)
                 self.insert_obstacle(node)
@@ -107,12 +103,43 @@ class GridGenerator():
     def get_adj_list(self):
         return self.adj_list
     
-    def get_matrix(self):
-        matrix = [[1 for _ in range(0,self.n_cols)] for _ in range(0, self.n_rows)]
-        for node in self.nodes :
-            if len(self.adj_list[node]) == 0 :
-                i_node = node // self.n_cols
-                j_node = node % self.n_cols
-                matrix[i_node][j_node] = 0
+    
+class GridUtil:
+
+    def export_adj(adj_list, name):
+        filename = "./data/adj_list/" + name +".grid"
+        with open(filename, "w") as file:
+            for node in range(0, len(adj_list)):
+                for link_node in adj_list[node]:
+                    file.write(str(link_node) + "," + str(adj_list[node][link_node]) + ";")
+                file.write("\n")
+
+    def import_adj(name):
+        filename = name 
+        if not "./data/adj_list/" in name:
+            filename = "./data/adj_list/" + name 
+        if not ".grid" in name :
+            filename = filename + ".grid"
+            
+        adj_list = []
+        with open(filename) as file:
+            for line in file:
+                adj_list.append({})
+                for edge in line.split(";"):
+                    if not "," in edge:
+                        break
+                    node, weight = edge.split(",", 2)
+                    adj_list[-1][int(node)] = float(weight)
+
+        return adj_list
+    
+    def get_matrix(adj_list, n_col):
+        n_row = len(adj_list) // n_col
+        matrix = [["___" for _ in range(0, n_col)] for _ in range(0, n_row)]
+        for node in range(0, len(adj_list)) :
+            if len(adj_list[node]) == 0 :
+                i_node = node // n_col
+                j_node = node % n_col
+                matrix[i_node][j_node] = "X-X"
         
         return matrix
