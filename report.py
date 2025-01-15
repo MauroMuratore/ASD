@@ -18,6 +18,20 @@ class Report:
         col_end = self.problem.end % self.problem.n_col
         matrix = GridUtil.get_matrix(self.problem.adj_list,self.problem.n_col)
 
+        n_agent =0
+        for agent in self.problem.list_agent:
+            for state in agent:
+                row_s = state.node // self.problem.n_col
+                col_s = state.node % self.problem.n_col
+                if state.time == 0:
+                    matrix[row_s][col_s] = f'AS{n_agent}'
+                elif state.time == len(agent)-1:
+                    matrix[row_s][col_s] = f'AE{n_agent}'
+                else: 
+                    matrix[row_s][col_s] = f'A{n_agent:{0}{2}}'
+            
+            n_agent += 1
+
         if not self.solution is None:
             for e in self.solution.list_node:
                 row_e = e.node // self.problem.n_col
@@ -47,7 +61,7 @@ class Report:
         if not self.solution is None:
             csv += self.solution.str_csv() + "\n"
         else :
-            csv += ";;;;;;; \n"
+            csv += ";;;;;;;; \n"
         if verbose:
             print(header + csv)
 

@@ -1,5 +1,7 @@
 import math
 import random
+import os
+import time 
 
 class GridGenerator:
 
@@ -12,9 +14,21 @@ class GridGenerator:
         self.adj_list = [ {} for node in self.nodes]
         self.obstacles_ratio = obstacles_ratio
         self.agglomerate_size = agglomerate_size
-
+        tic_list = time.perf_counter()
         self.fill_adjacency_list()
+        toc_list = time.perf_counter()
+        tic_obs = time.perf_counter()
         self.generate_obstacles()
+        toc_obs = time.perf_counter()
+        time_list = toc_list -tic_list
+        time_obs = toc_obs -tic_obs
+
+        filename = "./data/gg_result.csv"
+        cond_header = os.path.isfile(filename)
+        with open(filename, "a+") as file:
+            if not cond_header:
+                file.write("row;col;aggl_ratio;aggl_size;time_list;time_obs\n")
+            file.write(f'{self.n_rows};{self.n_cols};{self.obstacles_ratio};{self.agglomerate_size};{time_list};{time_obs}\n')
 
     def fill_adjacency_list(self):
         """

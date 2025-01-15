@@ -2,7 +2,7 @@ from typing import List
 from collections import deque
 from node_state import NodeState
 from priority_queue import PriorityQueue
-from problem_generator import Problem
+from problem import Problem
 from solution import Solution
 from heuristic import Heuristic
 import math
@@ -33,8 +33,8 @@ class ReachGoal:
             toc_exe = time.perf_counter()
             if current_node_state.node == self.problem.end:
                 t_exe = toc_exe -tic_exe
-                list_sol, t_rec = self.recostruct_path(current_node_state, start_node_state)
-                solution = Solution(self.type_heuristic, list_sol, t_exe, t_rec, len(self.closed), len(self.open))
+                list_sol, t_rec, wait = self.recostruct_path(current_node_state, start_node_state)
+                solution = Solution(self.type_heuristic, list_sol, t_exe, t_rec, len(self.closed), len(self.open), wait)
                 return solution
             
             if toc_exe - tic_exe > self.problem.max_time:
@@ -51,7 +51,15 @@ class ReachGoal:
                     if child_node_state not in self.closed:
                         traversable = True
 
-                        ## Da aggiungere foreach agent
+                        time_child = child_node_state.time 
+                        for agent in self.problem.list_agent:
+                            if len(agent) > time_child:
+                                if agent[time_child].node == child_node:
+                                    traversable = False
+                            ## l'agente è fermo nel suo end
+                            else:
+                                if agent[-1].node == child_node:
+                                    traversable = False
 
                         if traversable :
                             if not child_node_state in self.open:
@@ -62,7 +70,7 @@ class ReachGoal:
                                     f_score_child = self.call_heuristic(child_node_state)
                                     del self.open[child_node_state]
                                     self.open.push(child_node_state, f_score_child)
-        return Solution(self.type_heuristic, [], -1, -1, -1,-1)
+        return Solution(self.type_heuristic, [], -1, -1, -1,-1, -1)
     
     def call_heuristic(self, node_state):
         row_node = node_state.node // self.problem.n_col
@@ -74,11 +82,13 @@ class ReachGoal:
         path = deque([end_node_state])
         current_node_state = end_node_state
         tic_rec = time.perf_counter()
+        wait = 0
         while current_node_state != start_node_state:
             parent_node_state = current_node_state.parent
             path.appendleft(parent_node_state)
-            # Da aggiungere i controlli del wait
+            if parent_node_state.node == current_node_state.node:
+                wait += 1
             current_node_state = parent_node_state
         toc_rec = time.perf_counter()
         time_rec = toc_rec - tic_rec
-        return list(path), time_rec
+        return list(path), time_rec, wait

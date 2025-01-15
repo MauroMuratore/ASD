@@ -1,15 +1,18 @@
 from grid_generator import GridGenerator, GridUtil
+from reach_goal import ReachGoal
+from heuristic import Heuristic
+from node_state import NodeState
+from problem import Problem
 import random
 
 class ProblemGenerator:
 
-    def __init__(self, grid_generator: GridGenerator, max_time: int):
-        # Create the grid
-        #self.gg = GridGenerator(n_rows, n_cols, obstacles_ratio, agglomerate_size)
+    def __init__(self, grid_generator: GridGenerator, n_agents: int, max_time: int):
         self.adj_list = grid_generator.get_adj_list()
         self.aggl_ratio = grid_generator.obstacles_ratio
         self.aggl_size = grid_generator.agglomerate_size
-
+        self.n_agents = n_agents
+        self.list_agent = []
         # Choose start and end
         self.available_nodes = self.get_available_nodes()
 
@@ -27,80 +30,22 @@ class ProblemGenerator:
             index = index + 1
 
         return available_nodes
+    
+    def generate_agent(self, start, end):
+        pb = Problem(self.adj_list, start, end, 1000, self.n_cols, self.aggl_ratio, self.aggl_size, self.list_agent)
+        rg = ReachGoal(pb, Heuristic.TYPE_HEURISTIC[2])
+        sol = rg.execute()
+        agent = sol.list_node
+        self.list_agent.append(agent)
 
     def generate_problem(self):
-        nodes = random.choices(self.available_nodes, k=2)
-        start = nodes[0]
-        end = nodes[-1]
-        pb = Problem(self.adj_list, start, end, self.max_time, self.n_cols, self.aggl_ratio, self.aggl_size)
+        nodes_start = random.sample(self.available_nodes, self.n_agents+1)
+        nodes_end = random.sample(self.available_nodes, self.n_agents+1)
+        for i in range(0, self.n_agents):
+            self.generate_agent(nodes_start[i], nodes_end[i])
+
+        start = nodes_start[-1]
+        end = nodes_end[-1]
+        pb = Problem(self.adj_list, start, end, self.max_time, self.n_cols, self.aggl_ratio, self.aggl_size, self.list_agent)
         return pb
         
-class Problem:
-
-    def __init__(self, adj_list, start, end, max_time, n_col, aggl_ratio, aggl_size):
-        self.adj_list = adj_list
-        self.start = start 
-        self.end = end
-        self.max_time = max_time 
-        self.n_col = n_col
-        self.aggl_ratio = aggl_ratio
-        self.aggl_size = aggl_size
-
-    def export_problem(self, name, name_grid, export_grid):
-        filename = "./data/problem/" + name + ".prob"
-        with open(filename, "w") as file:
-            file.write("start=" + str(self.start) + "\n")
-            file.write("end=" + str(self.end) + "\n")
-            file.write("max_time="+ str(self.max_time) + "\n")
-            file.write("n_col=" + str(self.n_col)+"\n")
-            file.write("agg_ratio=" +str(self.aggl_ratio) + "\n")
-            file.write("agg_size="+ str(self.aggl_size)+ "\n")
-            file.write("name_grid=" +name_grid)
-        if export_grid:
-            GridUtil.export_adj(self.adj_list, name_grid)
-
-    def import_problem(name):
-        filename = name 
-        if not "./data/problem/" in name:
-            filename = "./data/problem/" + name 
-        if not ".prob" in name :
-            filename = filename + ".prob"
-
-        with open(filename) as file:
-            for line in file:
-                if "start" in line:
-                    start = int(line.split("=")[-1])
-                elif "end" in line:
-                    end = int(line.split("=")[-1])
-                elif "max_time" in line :
-                    max_time = int(line.split("=")[-1])
-                elif "n_col" in line :
-                    n_col = int(line.split("=")[-1])
-                elif "agg_ratio" in line:
-                    agg_ratio = float(line.split("=")[-1])
-                elif "agg_size" in line:
-                    agg_size = int(line.split("=")[-1])
-                elif "name_grid" in line:
-                    name_grid = line.split("=")[-1]
-                    adj_list = GridUtil.import_adj(name_grid)
-
-        return Problem(adj_list, start, end, max_time, n_col, agg_ratio, agg_size)
-    
-    def __str__(self):
-        row_start = self.start // self.n_col
-        row_end = self.end // self.n_col
-        col_start = self.start % self.n_col
-        col_end = self.end % self.n_col
-        n_row = int(len(self.adj_list)/self.n_col)
-        return f'Start: ({row_start}x{col_start}) \nEnd: ({row_end}x{col_end}) \nMax_time: {self.max_time}  \nN_row: {n_row}\nN_col: {self.n_col}\nAggl_ratio: {self.aggl_ratio} \nAggl_size: {self.aggl_size}\n'
-
-    def str_csv(self):
-        n_row = int(len(self.adj_list)/self.n_col)
-        row_start = self.start // self.n_col
-        row_end = self.end // self.n_col
-        col_start = self.start % self.n_col
-        col_end = self.end % self.n_col
-        return f'{n_row};{self.n_col};({row_start}x{col_start});({row_end}x{col_end});{self.max_time};{self.aggl_ratio:0.2f};{self.aggl_size};'
-    
-    def col_name_csv():
-        return 'Row;Column;Start;End;Max_time;Aggl_ratio;Aggl_size;'
