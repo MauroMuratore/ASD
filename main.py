@@ -70,7 +70,7 @@ def generate_problem():
     problem.export_problem(in_problem["name"], in_problem["name"], True)
 
 def resolve_problem():
-    name = input("Inserisci nome del file da risolvere \n")
+    name = input("Inserisci nome del file del problema da risolvere \n")
     problem = Problem.import_problem(name)
     rg = ReachGoal(problem, Heuristic.TYPE_HEURISTIC[0])
     solution = rg.execute()
