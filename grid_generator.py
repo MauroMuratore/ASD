@@ -27,8 +27,8 @@ class GridGenerator:
         cond_header = os.path.isfile(filename)
         with open(filename, "a+") as file:
             if not cond_header:
-                file.write("row;col;aggl_ratio;aggl_size;time_list;time_obs\n")
-            file.write(f'{self.n_rows};{self.n_cols};{self.obstacles_ratio};{self.agglomerate_size};{time_list};{time_obs}\n')
+                file.write("row;col;aggl_ratio;aggl_size;time_list(ms);time_obs(ms)\n")
+            file.write(f'{self.n_rows};{self.n_cols};{self.obstacles_ratio};{self.agglomerate_size};{time_list*1000};{time_obs*1000}\n')
 
     def fill_adjacency_list(self):
         """

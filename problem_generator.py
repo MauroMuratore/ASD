@@ -7,14 +7,17 @@ import random
 
 class ProblemGenerator:
 
-    def __init__(self, grid_generator: GridGenerator, n_agents: int, max_time: int):
+    def __init__(self, grid_generator: GridGenerator, max_time: int):
         self.adj_list = grid_generator.get_adj_list()
         self.aggl_ratio = grid_generator.obstacles_ratio
         self.aggl_size = grid_generator.agglomerate_size
-        self.n_agents = n_agents
-        self.list_agent = []
         # Choose start and end
         self.available_nodes = self.get_available_nodes()
+        start_end = random.sample(self.available_nodes, 2)
+        self.start = start_end[0]
+        self.end = start_end[-1]
+        self.available_nodes.remove(self.start)
+        self.available_nodes.remove(self.end)
 
         self.n_cols = grid_generator.n_cols
 
@@ -31,21 +34,22 @@ class ProblemGenerator:
 
         return available_nodes
     
-    def generate_agent(self, start, end):
-        pb = Problem(self.adj_list, start, end, 1000, self.n_cols, self.aggl_ratio, self.aggl_size, self.list_agent)
-        rg = ReachGoal(pb, Heuristic.TYPE_HEURISTIC[2])
+    def generate_agent(self, start, end, list_agent):
+        pb = Problem(self.adj_list, start, end, 1000, self.n_cols, self.aggl_ratio, self.aggl_size, list_agent)
+        rg = ReachGoal(pb, Heuristic.TYPE_HEURISTIC[0])
         sol = rg.execute()
         agent = sol.list_node
-        self.list_agent.append(agent)
+        return agent
+        
 
-    def generate_problem(self):
-        nodes_start = random.sample(self.available_nodes, self.n_agents+1)
-        nodes_end = random.sample(self.available_nodes, self.n_agents+1)
-        for i in range(0, self.n_agents):
-            self.generate_agent(nodes_start[i], nodes_end[i])
+    def generate_problem(self, n_agents):
+        nodes_start = random.sample(self.available_nodes, n_agents)
+        nodes_end = random.sample(self.available_nodes, n_agents)
+        list_agent = []
+        for i in range(0, n_agents):
+            agent = self.generate_agent(nodes_start[i], nodes_end[i], list_agent)
+            list_agent.append(agent)
 
-        start = nodes_start[-1]
-        end = nodes_end[-1]
-        pb = Problem(self.adj_list, start, end, self.max_time, self.n_cols, self.aggl_ratio, self.aggl_size, self.list_agent)
+        pb = Problem(self.adj_list, self.start, self.end, self.max_time, self.n_cols, self.aggl_ratio, self.aggl_size, list_agent)
         return pb
         

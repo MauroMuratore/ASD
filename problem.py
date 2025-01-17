@@ -50,6 +50,7 @@ class Problem:
                     max_time = int(line.split("=")[-1])
                 elif "n_col" in line :
                     n_col = int(line.split("=")[-1])
+                    NodeState.n_col=n_col
                 elif "agg_ratio" in line:
                     agg_ratio = float(line.split("=")[-1])
                 elif "agg_size" in line:
@@ -66,9 +67,10 @@ class Problem:
                         coord_node = comp_s[0].strip().split("x")
                         if coord_node[0] == "":
                             break
-                        node = int(coord_node[0])*int(coord_node[1])
+                        node = int(coord_node[0])*NodeState.n_col + int(coord_node[1])
                         time = int(comp_s[1].strip())
-                        agent.append(NodeState(node, time))
+                        node_state = NodeState(node, time)
+                        agent.append(node_state)
 
                     list_agent.append(agent)
 

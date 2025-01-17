@@ -21,15 +21,12 @@ class Heuristic:
             return self.d_euclidean(row_node, col_node)
     
     def d_chess_king(self, row_node, col_node):
-        dif_min = min(
+        dif = [
             abs(row_node - self.row_end),
             abs(col_node - self.col_end)
-        )
-        dif_max = max(
-            abs(row_node - self.row_end),
-            abs(col_node - self.col_end)
-        )
-        distance = Heuristic.DISTANCE_DIAGONAL * dif_min + Heuristic.DISTANCE_AXIS *(dif_max-dif_min)
+        ]
+        dif_sort = sorted(dif)
+        distance = Heuristic.DISTANCE_DIAGONAL * dif_sort[0] + Heuristic.DISTANCE_AXIS *(dif_sort[-1]-dif_sort[0])
         return distance
     
     def d_chebyshev(self, row_node, col_node):
